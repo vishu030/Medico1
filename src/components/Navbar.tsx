@@ -1,14 +1,37 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { ShieldCheck, ShieldAlert, LogOut, Activity } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
   const { currentUser, logout } = useAuth();
+  const [visible, setVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
+
+  useEffect(() => {
+    if (!currentUser) return;
+
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      
+      // If we scroll down (current > last) and are scrolled past 80px, hide it
+      if (currentScrollY > lastScrollY && currentScrollY > 80) {
+        setVisible(false);
+      } else {
+        // If we scroll up (current < last) or are near the top, show it
+        setVisible(true);
+      }
+      
+      setLastScrollY(currentScrollY);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [currentUser, lastScrollY]);
 
   if (!currentUser) return null;
 
   return (
-    <header className="header-nav container">
+    <header className={`header-nav container ${!visible ? 'nav-hidden' : ''}`}>
       <div className="nav-bar glass">
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <Activity size={24} color="var(--accent)" />
