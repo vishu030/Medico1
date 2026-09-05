@@ -1,11 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Activity, ShieldCheck, ShieldAlert, LogIn, UserPlus } from 'lucide-react';
-import { Role } from '../utils/mockDb';
+import { Role, mockDb, User } from '../utils/mockDb';
 
 export const LoginRegister: React.FC = () => {
   const { login, register } = useAuth();
   const [isLoginTab, setIsLoginTab] = useState(true);
+  
+  // Real-time Users State for Demo Access Badges
+  const [users, setUsers] = useState<User[]>(() => mockDb.getUsers());
+
+  useEffect(() => {
+    const loadUsers = () => {
+      setUsers(mockDb.getUsers());
+    };
+    loadUsers();
+    const interval = setInterval(loadUsers, 1000);
+    return () => clearInterval(interval);
+  }, []);
   
   // Login State
   const [loginUsername, setLoginUsername] = useState('');
@@ -150,45 +162,39 @@ export const LoginRegister: React.FC = () => {
                 ⚡ QUICK PORTAL DEMO ACCESS
               </span>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <button 
-                  type="button" 
-                  className="btn btn-small"
-                  onClick={() => handleQuickLogin('dr_ananya')}
-                  style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 16px' }}
-                >
-                  <span style={{ fontWeight: 600 }}>👨‍⚕️ Dr. Ananya Sharma (Doctor)</span>
-                  <span className="badge badge-success" style={{ fontSize: '9px' }}>Verified</span>
-                </button>
-                
-                <button 
-                  type="button" 
-                  className="btn btn-small"
-                  onClick={() => handleQuickLogin('devesh_implants')}
-                  style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 16px' }}
-                >
-                  <span style={{ fontWeight: 600 }}>🏢 Devesh Ortho Supplies (Dealer)</span>
-                  <span className="badge badge-success" style={{ fontSize: '9px' }}>Verified</span>
-                </button>
+                {(() => {
+                  const demoAccounts = [
+                    { username: 'dr_ananya', title: '👨‍⚕️ Dr. Ananya Sharma (Doctor)', defaultRole: 'doctor' },
+                    { username: 'devesh_implants', title: '🏢 Devesh Ortho Supplies (Dealer)', defaultRole: 'dealer' },
+                    { username: 'dr_rahul', title: '👨‍⚕️ Dr. Rahul Mehta (Doctor)', defaultRole: 'doctor' },
+                    { username: 'admin', title: '🛡️ Platform Administrator', defaultRole: 'admin' },
+                  ];
 
-                <button 
-                  type="button" 
-                  className="btn btn-small"
-                  onClick={() => handleQuickLogin('dr_rahul')}
-                  style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 16px' }}
-                >
-                  <span style={{ fontWeight: 600 }}>👨‍⚕️ Dr. Rahul Mehta (Doctor)</span>
-                  <span className="badge badge-warning" style={{ fontSize: '9px' }}>Unverified</span>
-                </button>
+                  return demoAccounts.map((demo) => {
+                    const foundUser = users.find((u) => u.username === demo.username);
+                    const isVerified = foundUser ? foundUser.isVerified : demo.username !== 'dr_rahul';
+                    const isAdmin = demo.defaultRole === 'admin' || foundUser?.role === 'admin';
 
-                <button 
-                  type="button" 
-                  className="btn btn-small"
-                  onClick={() => handleQuickLogin('admin')}
-                  style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 16px' }}
-                >
-                  <span style={{ fontWeight: 600 }}>🛡️ Platform Administrator</span>
-                  <span className="badge badge-accent" style={{ fontSize: '9px' }}>Admin</span>
-                </button>
+                    return (
+                      <button 
+                        key={demo.username}
+                        type="button" 
+                        className="btn btn-small"
+                        onClick={() => handleQuickLogin(demo.username)}
+                        style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 16px' }}
+                      >
+                        <span style={{ fontWeight: 600 }}>{demo.title}</span>
+                        {isAdmin ? (
+                          <span className="badge badge-accent" style={{ fontSize: '9px' }}>Admin</span>
+                        ) : isVerified ? (
+                          <span className="badge badge-success" style={{ fontSize: '9px' }}>Verified</span>
+                        ) : (
+                          <span className="badge badge-warning" style={{ fontSize: '9px' }}>Unverified</span>
+                        )}
+                      </button>
+                    );
+                  });
+                })()}
               </div>
             </div>
           </form>
