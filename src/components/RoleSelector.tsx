@@ -2,10 +2,21 @@ import React from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Shield, Stethoscope, Briefcase } from 'lucide-react';
 
-export const RoleSelector: React.FC = () => {
+interface RoleSelectorProps {
+  onRoleSwitched?: () => void;
+}
+
+export const RoleSelector: React.FC<RoleSelectorProps> = ({ onRoleSwitched }) => {
   const { currentUser, switchRole } = useAuth();
 
   if (!currentUser) return null;
+
+  const handleSwap = (role: 'doctor' | 'dealer' | 'admin') => {
+    switchRole(role);
+    if (onRoleSwitched) {
+      onRoleSwitched();
+    }
+  };
 
   return (
     <div 
@@ -31,7 +42,7 @@ export const RoleSelector: React.FC = () => {
       <div style={{ display: 'flex', gap: '8px' }}>
         <button 
           className={`btn btn-small ${currentUser.role === 'doctor' ? 'btn-solid' : ''}`}
-          onClick={() => switchRole('doctor')}
+          onClick={() => handleSwap('doctor')}
           title="Switch to Dr. Ananya (Doctor)"
         >
           <Stethoscope size={12} />
@@ -40,7 +51,7 @@ export const RoleSelector: React.FC = () => {
 
         <button 
           className={`btn btn-small ${currentUser.role === 'dealer' ? 'btn-solid' : ''}`}
-          onClick={() => switchRole('dealer')}
+          onClick={() => handleSwap('dealer')}
           title="Switch to Devesh Supplies (Dealer)"
         >
           <Briefcase size={12} />
@@ -49,7 +60,7 @@ export const RoleSelector: React.FC = () => {
 
         <button 
           className={`btn btn-small ${currentUser.role === 'admin' ? 'btn-solid' : ''}`}
-          onClick={() => switchRole('admin')}
+          onClick={() => handleSwap('admin')}
           title="Switch to Admin"
         >
           <Shield size={12} />

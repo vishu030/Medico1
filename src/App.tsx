@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { Navbar } from './components/Navbar';
 import { RoleSelector } from './components/RoleSelector';
+import { VisitPage } from './pages/VisitPage';
 import { LoginRegister } from './pages/LoginRegister';
 import { DoctorDashboard } from './pages/DoctorDashboard';
 import { DealerDashboard } from './pages/DealerDashboard';
@@ -9,8 +10,13 @@ import { AdminDashboard } from './pages/AdminDashboard';
 
 const AppContent: React.FC = () => {
   const { currentUser } = useAuth();
+  const [activeView, setActiveView] = useState<'visit' | 'portal'>('visit');
 
-  const renderDashboard = () => {
+  const renderContent = () => {
+    if (activeView === 'visit') {
+      return <VisitPage onGoToPortal={() => setActiveView('portal')} />;
+    }
+
     if (!currentUser) {
       return <LoginRegister />;
     }
@@ -37,15 +43,15 @@ const AppContent: React.FC = () => {
       </div>
 
       {/* Floating navigation header */}
-      <Navbar />
+      <Navbar activeView={activeView} onSelectView={setActiveView} />
 
-      {/* Primary Dashboard viewport */}
+      {/* Primary Viewport */}
       <main style={{ minHeight: '70vh' }}>
-        {renderDashboard()}
+        {renderContent()}
       </main>
 
       {/* Interactive Switchboard helper for testing */}
-      <RoleSelector />
+      <RoleSelector onRoleSwitched={() => setActiveView('portal')} />
 
       {/* Standardized academic footer */}
       <footer className="container" style={{ marginTop: '80px' }}>
